@@ -1,63 +1,62 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-REM ================= CONFIG =================
-set ARDUINO_CLI=arduino-cli
-set BOARD=esp32:esp32:esp32
-set BAUD=115200
+echo ================================
+echo ESP32 UART CI TEST STARTED
+echo ================================
 
+REM ===== CONFIG =====
+set ARDUINO_CLI=arduino-cli.exe
+set FQBN=esp32:esp32:esp32
 set SENDER_PORT=COM7
 set RECEIVER_PORT=COM6
-
-set SENDER_SKETCH=sender
-set RECEIVER_SKETCH=receiver
-
-set UART_LOG=uart_output.txt
-REM ==========================================
-
-echo ===============================
-echo Flashing SENDER
-echo ===============================
-
-%ARDUINO_CLI% upload -p %SENDER_PORT% --fqbn %BOARD% %SENDER_SKETCH%
-if errorlevel 1 exit /b 1
-
-echo ===============================
-echo Flashing RECEIVER
-echo ===============================
-
-%ARDUINO_CLI% upload -p %RECEIVER_PORT% --fqbn %BOARD% %RECEIVER_SKETCH%
-if errorlevel 1 exit /b 1
-
-echo ===============================
-echo Waiting for ESP32 reboot
-echo ===============================
-timeout /t 8 >nul
-
-REM ================= UART TEST =================
-echo ===============================
-echo UART toggle test started
-echo ===============================
+set BAUD=115200
+set UART_LOG=%TEMP%\uart_result.txt
 
 del "%UART_LOG%" 2>nul
 
-REM Configure serial port (THIS DOES NOT LOCK)
-mode %RECEIVER_PORT% BAUD=%BAUD% PARITY=N DATA=8 STOP=1 >nul
+REM ===== COMPILE + UPLOAD SENDER =====
+echo Compiling sender...
+%ARDUINO_CLI% compile --fqbn %FQBN% sender || exit /b 1
 
-REM Read UART once (blocking-safe)
-type %RECEIVER_PORT% > "%UART_LOG%" & timeout /t 3 >nul
+echo Uploading sender...
+%ARDUINO_CLI% upload -p %SENDER_PORT% --fqbn %FQBN% sender || exit /b 1
 
-findstr /C:"UART_TEST_PASS" "%UART_LOG%" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo UART TEST RESULT: PASS
-    exit /b 0
+REM ===== COMPILE + UPLOAD RECEIVER =====
+echo Compiling receiver...
+%ARDUINO_CLI% compile --fqbn %FQBN% receiver || exit /b 1
+
+echo Uploading receiver...
+%ARDUINO_CLI% upload -p %RECEIVER_PORT% --fqbn %FQBN% receiver || exit /b 1
+
+echo Waiting for ESP32 reboot...
+timeout /t 4 >nul
+
+echo ================================
+echo UART toggle test started
+echo ================================
+
+REM ===== START POWERHELL SERIAL LISTENER (ONCE) =====
+powershell -NoProfile -Command ^
+"$p = New-Object System.IO.Ports.SerialPort('%RECEIVER_PORT%', %BAUD%); ^
+$p.ReadTimeout = 7000; ^
+$p.Open(); ^
+try { $line = $p.ReadLine(); $line | Out-File '%UART_LOG%' } catch {} ^
+$p.Close();"
+
+REM ===== CHECK RESULT =====
+if exist "%UART_LOG%" (
+    type "%UART_LOG%"
+
+    findstr /C:"UART_TEST_PASS" "%UART_LOG%" >nul && (
+        echo ================================
+        echo UART TEST RESULT: PASS
+        echo ================================
+        exit /b 0
+    )
 )
 
-findstr /C:"UART_TEST_FAIL" "%UART_LOG%" >nul
-if %ERRORLEVEL% EQU 0 (
-    echo UART TEST RESULT: FAIL
-    exit /b 1
-)
-
-echo UART TEST RESULT: FAIL (NO OUTPUT)
+echo ================================
+echo UART TEST RESULT: FAIL
+echo ================================
 exit /b 1
