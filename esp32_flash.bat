@@ -6,7 +6,7 @@ set ARDUINO_CLI=arduino-cli
 set BOARD=esp32:esp32:esp32
 set BAUD=115200
 
-set SENDER_PORT=COM5
+set SENDER_PORT=COM7
 set RECEIVER_PORT=COM6
 
 set SENDER_SKETCH=sender
