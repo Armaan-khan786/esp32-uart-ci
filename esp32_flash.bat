@@ -11,13 +11,19 @@ set FQBN=esp32:esp32:esp32
 
 set SENDER_PORT=COM7
 set RECEIVER_PORT=COM6
-
 set BAUD=115200
+
+set SENDER_SKETCH=%GITHUB_WORKSPACE%\sender
+set RECEIVER_SKETCH=%GITHUB_WORKSPACE%\receiver
+
+REM ===== VERIFY WORKSPACE =====
+echo Workspace: %GITHUB_WORKSPACE%
+dir %GITHUB_WORKSPACE%
 
 REM ===== COMPILE SENDER =====
 echo.
 echo Compiling sender...
-%ARDUINO_CLI% compile --fqbn %FQBN% sender
+"%ARDUINO_CLI%" compile --fqbn %FQBN% "%SENDER_SKETCH%"
 IF ERRORLEVEL 1 (
     echo SENDER COMPILE FAILED
     exit /b 1
@@ -25,7 +31,7 @@ IF ERRORLEVEL 1 (
 
 REM ===== UPLOAD SENDER =====
 echo Uploading sender to %SENDER_PORT% ...
-%ARDUINO_CLI% upload -p %SENDER_PORT% --fqbn %FQBN% sender
+"%ARDUINO_CLI%" upload -p %SENDER_PORT% --fqbn %FQBN% "%SENDER_SKETCH%"
 IF ERRORLEVEL 1 (
     echo SENDER UPLOAD FAILED
     exit /b 1
@@ -34,7 +40,7 @@ IF ERRORLEVEL 1 (
 REM ===== COMPILE RECEIVER =====
 echo.
 echo Compiling receiver...
-%ARDUINO_CLI% compile --fqbn %FQBN% receiver
+"%ARDUINO_CLI%" compile --fqbn %FQBN% "%RECEIVER_SKETCH%"
 IF ERRORLEVEL 1 (
     echo RECEIVER COMPILE FAILED
     exit /b 1
@@ -42,7 +48,7 @@ IF ERRORLEVEL 1 (
 
 REM ===== UPLOAD RECEIVER =====
 echo Uploading receiver to %RECEIVER_PORT% ...
-%ARDUINO_CLI% upload -p %RECEIVER_PORT% --fqbn %FQBN% receiver
+"%ARDUINO_CLI%" upload -p %RECEIVER_PORT% --fqbn %FQBN% "%RECEIVER_SKETCH%"
 IF ERRORLEVEL 1 (
     echo RECEIVER UPLOAD FAILED
     exit /b 1
