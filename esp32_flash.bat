@@ -10,7 +10,10 @@ set FQBN=esp32:esp32:esp32
 set SENDER_PORT=COM7
 set RECEIVER_PORT=COM6
 set LOG=%TEMP%\uart_result.txt
-set PS_SCRIPT=%~dp0uart_listen.ps1
+
+REM absolute path to this BAT file
+set ROOT=%~dp0
+set PS_SCRIPT=%ROOT%uart_listen.ps1
 
 del "%LOG%" 2>nul
 
@@ -24,6 +27,7 @@ echo Waiting for reboot...
 timeout /t 4 >nul
 
 echo UART toggle test started
+echo Using PS script: %PS_SCRIPT%
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%"
 
