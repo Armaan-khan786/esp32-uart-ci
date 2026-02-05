@@ -19,20 +19,20 @@ if exist "%UART_LOG%" del "%UART_LOG%"
 REM ===== COMPILE SENDER =====
 echo.
 echo Compiling sender...
-%ARDUINO_CLI% compile --no-input --fqbn %FQBN% sender || exit /b 1
+%ARDUINO_CLI% compile --fqbn %FQBN% sender <NUL || exit /b 1
 
 REM ===== UPLOAD SENDER =====
 echo Uploading sender...
-%ARDUINO_CLI% upload --no-input -p %SENDER_PORT% --fqbn %FQBN% sender || exit /b 1
+%ARDUINO_CLI% upload -p %SENDER_PORT% --fqbn %FQBN% sender <NUL || exit /b 1
 
 REM ===== COMPILE RECEIVER =====
 echo.
 echo Compiling receiver...
-%ARDUINO_CLI% compile --no-input --fqbn %FQBN% receiver || exit /b 1
+%ARDUINO_CLI% compile --fqbn %FQBN% receiver <NUL || exit /b 1
 
 REM ===== UPLOAD RECEIVER =====
 echo Uploading receiver...
-%ARDUINO_CLI% upload --no-input -p %RECEIVER_PORT% --fqbn %FQBN% receiver || exit /b 1
+%ARDUINO_CLI% upload -p %RECEIVER_PORT% --fqbn %FQBN% receiver <NUL || exit /b 1
 
 REM ===== WAIT FOR BOOT =====
 echo Waiting for ESP32 reboot...
