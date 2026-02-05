@@ -16,5 +16,4 @@ steps:
     uses: actions/checkout@v4
 
   - name: Flash ESP32 and run UART test
-    run: |
-      .\esp32_flash.bat
+    run: cmd /c esp32_flash.bat
