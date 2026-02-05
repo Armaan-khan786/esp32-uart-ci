@@ -1,20 +1,20 @@
 name: ESP32 UART CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+push:
+branches: [ main ]
+pull_request:
+branches: [ main ]
+workflow_dispatch:
 
 jobs:
-  uart-test:
-    runs-on: self-hosted
+uart-test:
+runs-on: self-hosted
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
 
-      - name: Flash ESP32 and run UART test
-        run: |
-          esp32_flash.bat
+  - name: Flash ESP32 and run UART test
+    run: |
+      .\esp32_flash.bat
