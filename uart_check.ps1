@@ -4,16 +4,16 @@ $log  = "$env:TEMP\uart_result.txt"
 
 Remove-Item $log -ErrorAction Ignore
 
-$p = New-Object System.IO.Ports.SerialPort $port,$baud
-$p.ReadTimeout = 7000
-$p.Open()
+$sp = New-Object System.IO.Ports.SerialPort $port,$baud
+$sp.ReadTimeout = 8000
+$sp.Open()
 
 try {
-    $line = $p.ReadLine()
-    $line | Out-File $log
+    $line = $sp.ReadLine()
+    $line | Out-File -Encoding ascii $log
 }
 catch {
-    "UART_TEST_FAIL" | Out-File $log
+    "UART_TEST_FAIL" | Out-File -Encoding ascii $log
 }
 
-$p.Close()
+$sp.Close()
