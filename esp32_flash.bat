@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
 echo ================================
 echo ESP32 UART CI TEST
@@ -10,6 +10,7 @@ set FQBN=esp32:esp32:esp32
 set SENDER_PORT=COM7
 set RECEIVER_PORT=COM6
 set LOG=%TEMP%\uart_result.txt
+set PS_SCRIPT=%~dp0uart_listen.ps1
 
 del "%LOG%" 2>nul
 
@@ -24,7 +25,12 @@ timeout /t 4 >nul
 
 echo UART toggle test started
 
-powershell -NoProfile -ExecutionPolicy Bypass -File uart_listen.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%"
+
+if not exist "%LOG%" (
+    echo UART log not found
+    exit /b 1
+)
 
 type "%LOG%"
 
