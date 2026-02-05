@@ -1,23 +1,50 @@
 param (
     [string]$Port,
-    [int]$Baud,
+    [int]$Baud = 115200,
     [string]$LogFile
 )
 
-$p = New-Object System.IO.Ports.SerialPort $Port, $Baud
-$p.ReadTimeout = 500
-$p.Open()
+$ErrorActionPreference = "Stop"
 
-Start-Sleep -Milliseconds 300
+# Open serial port
+$serial = New-Object System.IO.Ports.SerialPort $Port, $Baud
+$serial.ReadTimeout = 500
+$serial.NewLine = "`n"
 
 try {
-    while ($p.BytesToRead -gt 0) {
-        $line = $p.ReadLine()
-        $line | Out-File -Append $LogFile
-    }
-}
-catch {
-    # ignore read timeout
+    $serial.Open()
+} catch {
+    "UART_TEST_FAIL: Cannot open port" | Out-File $LogFile
+    exit 1
 }
 
-$p.Close()
+$start = Get-Date
+$found = $false
+
+while ((Get-Date) - $start -lt [TimeSpan]::FromSeconds(5)) {
+    try {
+        $line = $serial.ReadLine().Trim()
+
+        if ($line -match "TOGGLE_OK") {
+            "UART_TEST_PASS" | Out-File $LogFile
+            $found = $true
+            break
+        }
+
+        if ($line -match "TOGGLE_FAIL") {
+            "UART_TEST_FAIL" | Out-File $LogFile
+            break
+        }
+    } catch {
+        # timeout – ignore
+    }
+}
+
+$serial.Close()
+
+if (-not $found) {
+    "UART_TEST_FAIL" | Out-File $LogFile
+    exit 1
+}
+
+exit 0
